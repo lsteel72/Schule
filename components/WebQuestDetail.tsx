@@ -107,7 +107,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
               { id: 'tarea', icon: '🎒', label: 'Tarea' },
               { id: 'proceso', icon: '👣', label: 'Pasos' },
               { id: 'evaluacion', icon: '📝', label: 'Quiz' },
-              { id: 'reflexion', icon: '🐱', label: '¡Terminar!' }
+              { id: 'reflexion', icon: '🐱', label: 'Reflexión' }
             ].map(tab => (
               <button 
                 key={tab.id} 
@@ -190,8 +190,8 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                     })}
                   </div>
                   
-                  <button onClick={onClose} className="w-full py-8 bg-slate-800 text-white rounded-[2rem] font-black text-2xl hover:bg-black transition-all mt-10">
-                    TERMINAR REVISIÓN Y SALIR
+                  <button onClick={onClose} className="w-full py-8 bg-slate-800 text-white rounded-[2rem] font-black text-2xl hover:bg-black transition-all mt-10 uppercase tracking-tighter">
+                    FINALIZAR REVISIÓN Y SALIR
                   </button>
                 </div>
               )}
@@ -359,9 +359,9 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
 
                   <button 
                     onClick={saveResult} 
-                    className="w-full py-10 bg-emerald-600 text-white rounded-[3rem] font-black text-4xl shadow-[0_15px_0_rgb(5,150,105)] active:translate-y-2 active:shadow-none transition-all hover:bg-emerald-500 group"
+                    className="w-full py-10 bg-emerald-600 text-white rounded-[3rem] font-black text-4xl shadow-[0_15px_0_rgb(5,150,105)] active:translate-y-2 active:shadow-none transition-all hover:bg-emerald-500 group uppercase tracking-tighter"
                   >
-                    🚀 ¡GUARDAR Y ENVIAR AL DOCENTE!
+                    🚀 REFLEXIÓN Y ENVIAR
                   </button>
                 </div>
               )}
