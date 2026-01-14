@@ -1,0 +1,8 @@
+{
+  "name": "Klassen 3: Hub de Aventuras Digitales",
+  "description": "Una plataforma interactiva de WebQuests para niños de 7 a 9 años, integrando CodeSpark, Minecraft Edu, Kodable y Canvas.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
