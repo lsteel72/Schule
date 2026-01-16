@@ -12,7 +12,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
   const [activeTab, setActiveTab] = useState<'intro' | 'tarea' | 'proceso' | 'evaluacion' | 'reflexion'>('intro');
   const [quizScores, setQuizScores] = useState<number[]>(new Array(quest.evaluation.length).fill(-1));
   const [showResults, setShowResults] = useState(false);
-  const [showReview, setShowReview] = useState(false); // Estado para mostrar la revisión de respuestas
+  const [showReview, setShowReview] = useState(false);
   const [reflectionValue, setReflectionValue] = useState(5);
   
   const [studentName, setStudentName] = useState('');
@@ -20,7 +20,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
   const [duplicateError, setDuplicateError] = useState(false);
 
   const handleAnswer = (questionIdx: number, answerIdx: number) => {
-    if (showResults) return; // No permitir cambiar respuestas después de enviar
+    if (showResults) return;
     const newScores = [...quizScores];
     newScores[questionIdx] = answerIdx;
     setQuizScores(newScores);
@@ -41,7 +41,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
     }
 
     if (quizScores.includes(-1)) {
-      alert("⚠️ ¡Faltan preguntas! Regresa a la pestaña de EVALUACIÓN y responde todas las preguntas del quiz.");
+      alert("⚠️ ¡Faltan preguntas! Regresa a la pestaña de EVALUACIÓN.");
       setActiveTab('evaluacion');
       return;
     }
@@ -77,7 +77,6 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/98 backdrop-blur-2xl animate-in fade-in duration-300">
       <div className="max-w-5xl mx-auto my-8 bg-white rounded-[2rem] overflow-hidden text-slate-800 shadow-2xl relative border-8 border-yellow-400">
         
-        {/* Header Institucional */}
         <div className="bg-yellow-400 p-6 flex items-center gap-6 border-b-4 border-slate-800">
           <div className="bg-white p-3 rounded-xl border-4 border-slate-800 shadow-[4px_4px_0_rgba(0,0,0,1)]">
             <span className="text-4xl">🦎</span>
@@ -94,12 +93,11 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
              <span className="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full font-black text-sm uppercase tracking-widest">{quest.platform}</span>
            </div>
            <div className="bg-indigo-600 text-white p-5 rounded-3xl max-w-sm shadow-xl border-b-4 border-indigo-800">
-              <p className="text-[10px] font-black uppercase mb-1 opacity-70 tracking-widest">Competencia KMK / Estándar Alemán:</p>
+              <p className="text-[10px] font-black uppercase mb-1 opacity-70 tracking-widest">Competencia KMK:</p>
               <p className="text-sm font-bold leading-tight italic">{quest.kmkDefinition}</p>
            </div>
         </div>
 
-        {/* Navegación por Pestañas */}
         {!showResults && (
           <div className="flex flex-wrap bg-white border-b-2 border-slate-100 p-2 gap-2">
             {[
@@ -128,7 +126,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                 <div className="p-10 bg-emerald-50 rounded-[3rem] border-8 border-emerald-200 text-center">
                   <div className="text-9xl mb-6">🏆</div>
                   <h4 className="text-5xl font-black text-emerald-900 mb-4 uppercase">{studentName.split(',')[1] || studentName}</h4>
-                  <p className="text-2xl font-bold text-emerald-600 mb-10 tracking-widest uppercase italic">¡MISIÓN CUMPLIDA CON ÉXITO!</p>
+                  <p className="text-2xl font-bold text-emerald-600 mb-10 tracking-widest uppercase italic">¡MISIÓN ENVIADA CON ÉXITO!</p>
                   
                   <div className="flex flex-wrap justify-center gap-8 mb-10">
                       <div className="bg-white p-8 rounded-[2rem] border-4 border-emerald-500 shadow-xl min-w-[200px]">
@@ -158,7 +156,6 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                        <span>⬅️</span> VOLVER
                     </button>
                   </div>
-                  
                   <div className="space-y-8">
                     {quest.evaluation.map((q, qIdx) => {
                       const isCorrect = quizScores[qIdx] === q.correctAnswer;
@@ -175,7 +172,6 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                               let style = "bg-white border-slate-100 text-slate-400";
                               if (oIdx === q.correctAnswer) style = "bg-emerald-500 text-white border-emerald-600 shadow-md";
                               else if (oIdx === quizScores[qIdx] && !isCorrect) style = "bg-red-500 text-white border-red-600 shadow-md";
-                              
                               return (
                                 <div key={oIdx} className={`p-4 rounded-xl font-bold border-2 text-sm ${style}`}>
                                   {opt}
@@ -189,9 +185,8 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                       );
                     })}
                   </div>
-                  
-                  <button onClick={onClose} className="w-full py-8 bg-slate-800 text-white rounded-[2rem] font-black text-2xl hover:bg-black transition-all mt-10 uppercase tracking-tighter">
-                    FINALIZAR REVISIÓN Y SALIR
+                  <button onClick={onClose} className="w-full py-8 bg-slate-800 text-white rounded-[2rem] font-black text-2xl hover:bg-black transition-all mt-10">
+                    TERMINAR Y SALIR
                   </button>
                 </div>
               )}
@@ -236,16 +231,10 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                   <div className="space-y-6">
                     {quest.process.map((step, i) => (
                       <div key={i} className={`p-8 rounded-[2.5rem] border-4 transition-all ${step.startsWith('---') ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-100 shadow-md'}`}>
-                        {step.startsWith('---') ? (
-                           <div className="text-indigo-600 font-black text-2xl flex items-center gap-4">
-                              <span className="text-4xl animate-pulse">🤝</span> {step.replace('--- ', '')}
-                           </div>
-                        ) : (
-                          <div className="flex gap-8 items-center">
-                            <span className="w-14 h-14 bg-emerald-500 text-white rounded-full flex-shrink-0 flex items-center justify-center font-black text-2xl shadow-lg">{i + 1}</span>
-                            <p className="text-xl font-bold text-slate-700 leading-snug">{step}</p>
-                          </div>
-                        )}
+                        <div className="flex gap-8 items-center">
+                          <span className="w-14 h-14 bg-emerald-500 text-white rounded-full flex-shrink-0 flex items-center justify-center font-black text-2xl shadow-lg">{i + 1}</span>
+                          <p className="text-xl font-bold text-slate-700 leading-snug">{step}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -273,9 +262,6 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                       </div>
                     ))}
                   </div>
-                  <div className="text-center p-8 bg-indigo-50 rounded-3xl">
-                     <p className="text-xl font-bold text-indigo-600">¡Genial! Cuando termines el Quiz, pasa a la pestaña de REFLEXIÓN para enviar tu misión.</p>
-                  </div>
                 </div>
               )}
 
@@ -286,33 +272,24 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                     <p className="text-2xl font-bold text-slate-400 italic">¿Cómo te sentiste hoy con la tecnología?</p>
                   </div>
                   
-                  {/* Selector de Identidad Integrado en Reflexión */}
                   <div className="bg-indigo-600 p-10 rounded-[3rem] border-b-8 border-indigo-900 shadow-2xl text-white">
                     <h4 className="text-2xl font-black mb-8 uppercase flex items-center gap-3">
-                       <span className="text-4xl">🆔</span> Identifícate para Guardar
+                       <span className="text-4xl">🆔</span> Identifícate
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                       <div>
-                        <label className="block text-xs font-black uppercase mb-4 opacity-70 tracking-widest">Paso 1: Elige tu Klasse</label>
+                        <label className="block text-xs font-black uppercase mb-4 opacity-70 tracking-widest">Elige tu Klasse</label>
                         <div className="grid grid-cols-2 gap-3">
                            {["K3A", "K3B", "K3C", "K3D"].map(k => (
-                             <button 
-                               key={k} 
-                               onClick={() => { setKlasse(k); setStudentName(""); }} 
-                               className={`py-4 rounded-2xl font-black border-4 transition-all ${klasse === k ? 'bg-white text-indigo-600 border-yellow-400 shadow-xl' : 'bg-indigo-700 border-indigo-500 text-indigo-300'}`}
-                             >
+                             <button key={k} onClick={() => { setKlasse(k); setStudentName(""); }} className={`py-4 rounded-2xl font-black border-4 transition-all ${klasse === k ? 'bg-white text-indigo-600 border-yellow-400 shadow-xl' : 'bg-indigo-700 border-indigo-500 text-indigo-300'}`}>
                                {k}
                              </button>
                            ))}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-black uppercase mb-4 opacity-70 tracking-widest">Paso 2: Busca tu nombre</label>
-                        <select 
-                          value={studentName} 
-                          onChange={(e) => setStudentName(e.target.value)} 
-                          className="w-full px-6 py-5 rounded-2xl border-4 border-indigo-400 bg-indigo-800 text-white outline-none font-black text-xl appearance-none shadow-inner"
-                        >
+                        <label className="block text-xs font-black uppercase mb-4 opacity-70 tracking-widest">Busca tu nombre</label>
+                        <select value={studentName} onChange={(e) => setStudentName(e.target.value)} className="w-full px-6 py-5 rounded-2xl border-4 border-indigo-400 bg-indigo-800 text-white outline-none font-black text-xl appearance-none shadow-inner">
                           <option value="">-- SELECCIONA TU NOMBRE --</option>
                           {studentLists[klasse].map(name => <option key={name} value={name}>{name}</option>)}
                         </select>
@@ -320,14 +297,11 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                     </div>
                   </div>
 
-                  {/* El Gatico Reflexivo 1-10 */}
                   <div className="bg-white p-12 rounded-[3.5rem] border-8 border-slate-100 shadow-2xl relative overflow-hidden h-[500px]">
                     <div className="absolute top-1/2 left-0 w-full h-2 bg-gradient-to-r from-red-500 via-yellow-400 to-emerald-500 opacity-20 rotate-[-5deg]"></div>
-                    
                     <div className="absolute top-12 left-12 right-12 flex justify-between text-slate-300 font-black text-4xl opacity-30 pointer-events-none">
                        {[1,2,3,4,5,6,7,8,9,10].map(n => <span key={n}>{n}</span>)}
                     </div>
-
                     <div className="absolute z-20 transition-all duration-300 pointer-events-none" style={{ left: `${(reflectionValue - 1) * 11.11}%`, top: `${75 - (reflectionValue * 5)}%`, transform: 'translate(-50%, -50%)' }}>
                        <div className="relative group">
                           <div className="text-[160px] animate-bounce-slow drop-shadow-2xl">🐱</div>
@@ -336,30 +310,16 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                           </div>
                        </div>
                     </div>
-
-                    <input 
-                      type="range" min="1" max="10" step="1" 
-                      value={reflectionValue} 
-                      onChange={(e) => setReflectionValue(parseInt(e.target.value))} 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30" 
-                    />
-
+                    <input type="range" min="1" max="10" step="1" value={reflectionValue} onChange={(e) => setReflectionValue(parseInt(e.target.value))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30" />
                     <div className="absolute bottom-10 left-10 right-10 flex justify-between font-black uppercase tracking-widest text-slate-400">
                        <span className="bg-slate-100 px-4 py-2 rounded-xl">1 - Muy Difícil</span>
                        <span className="bg-slate-100 px-4 py-2 rounded-xl">10 - ¡Súper Fácil!</span>
                     </div>
                   </div>
 
-                  {duplicateError && (
-                    <div className="bg-red-500 text-white p-8 rounded-[2rem] border-b-8 border-red-800 animate-bounce text-center">
-                       <p className="text-3xl font-black uppercase">⚠️ ¡YA ENVIASTE ESTA MISIÓN!</p>
-                       <p className="font-bold mt-2">No es necesario volver a enviarla, explorador.</p>
-                    </div>
-                  )}
-
                   <button 
                     onClick={saveResult} 
-                    className="w-full py-10 bg-emerald-600 text-white rounded-[3rem] font-black text-4xl shadow-[0_15px_0_rgb(5,150,105)] active:translate-y-2 active:shadow-none transition-all hover:bg-emerald-500 group uppercase tracking-tighter"
+                    className="w-full py-10 bg-emerald-600 text-white rounded-[3rem] font-black text-4xl shadow-[0_15px_0_rgb(5,150,105)] active:translate-y-2 active:shadow-none transition-all hover:bg-emerald-500 group uppercase tracking-widest"
                   >
                     🚀 REFLEXIÓN Y ENVIAR
                   </button>
@@ -367,15 +327,6 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
               )}
             </>
           )}
-        </div>
-
-        <div className="p-8 bg-slate-50 border-t-2 border-slate-100 flex justify-center items-center">
-          <div className="flex gap-2">
-             <div className="w-10 h-2 bg-black rounded-full"></div>
-             <div className="w-10 h-2 bg-red-600 rounded-full"></div>
-             <div className="w-10 h-2 bg-yellow-400 rounded-full"></div>
-             <div className="w-10 h-2 bg-blue-600 rounded-full"></div>
-          </div>
         </div>
       </div>
     </div>

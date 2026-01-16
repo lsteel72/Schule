@@ -1,5 +1,6 @@
 
 export enum Platform {
+  KODU = 'Kodu Game Lab',
   CODESPARK = 'CodeSpark',
   MINECRAFT = 'Minecraft Edu',
   KODABLE = 'Kodable',
@@ -25,7 +26,7 @@ export interface WebQuest {
   evaluation: QuizQuestion[];
   conclusion: string;
   color: string;
-  kmkDefinition: string; // Nueva definición breve de la competencia KMK
+  kmkDefinition: string;
 }
 
 export interface AdminUser {
@@ -39,6 +40,6 @@ export interface StudentResult {
   klasse: string;
   questTitle: string;
   score: number;
-  reflection: number; // Valor de 1 a 10
+  reflection: number;
   date: string;
 }
