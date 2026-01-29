@@ -77,12 +77,14 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/98 backdrop-blur-2xl animate-in fade-in duration-300">
       <div className="max-w-5xl mx-auto my-8 bg-white rounded-[2rem] overflow-hidden text-slate-800 shadow-2xl relative border-8 border-yellow-400">
         
-        {/* Cabecera */}
+        {/* Cabecera dinámica */}
         <div className="bg-yellow-400 p-6 flex items-center gap-6 border-b-4 border-slate-800">
           <div className="bg-white p-3 rounded-xl border-4 border-slate-800 shadow-[4px_4px_0_rgba(0,0,0,1)]">
             <span className="text-4xl">🦎</span>
           </div>
-          <h1 className="pixel-font text-2xl md:text-3xl text-slate-800 uppercase tracking-tighter">TECNOLOGIA</h1>
+          <h1 className="pixel-font text-xl md:text-2xl text-slate-800 uppercase tracking-tighter">
+            TECNOLOGIA ACTIVIDAD {quest.id}
+          </h1>
           <button onClick={onClose} className="ml-auto bg-slate-800 text-white p-3 rounded-full hover:scale-110 transition-transform">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3"/></svg>
           </button>
@@ -90,7 +92,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
 
         <div className="p-8 bg-slate-50 border-b-2 border-slate-100 flex flex-col md:flex-row justify-between gap-6">
            <div>
-             <h2 className="text-4xl font-black text-emerald-600 mb-2">{quest.title}</h2>
+             <h2 className="text-4xl font-black text-emerald-600 mb-2">{quest.title.split(': ')[1] || quest.title}</h2>
              <span className="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full font-black text-sm uppercase tracking-widest">{quest.platform}</span>
            </div>
            <div className="bg-indigo-600 text-white p-5 rounded-3xl max-w-sm shadow-xl border-b-4 border-indigo-800">
@@ -130,7 +132,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                 <div className="p-10 bg-emerald-50 rounded-[3rem] border-8 border-emerald-200 text-center">
                   <div className="text-9xl mb-6">🏆</div>
                   <h4 className="text-5xl font-black text-emerald-900 mb-4 uppercase">{studentName.split(',')[1] || studentName}</h4>
-                  <p className="text-2xl font-bold text-emerald-600 mb-10 tracking-widest uppercase italic">¡MISIÓN ENVIADA CON ÉXITO!</p>
+                  <p className="text-2xl font-bold text-emerald-600 mb-10 tracking-widest uppercase italic">¡MISIÓN ACTIVIDAD {quest.id} ENVIADA!</p>
                   
                   <div className="flex flex-wrap justify-center gap-8 mb-10">
                       <div className="bg-white p-8 rounded-[2rem] border-4 border-emerald-500 shadow-xl min-w-[200px]">
@@ -330,7 +332,7 @@ const WebQuestDetail: React.FC<WebQuestDetailProps> = ({ quest, onClose }) => {
                     onClick={saveResult} 
                     className="w-full py-10 bg-emerald-600 text-white rounded-[3rem] font-black text-4xl shadow-[0_15px_0_rgb(5,150,105)] active:translate-y-2 transition-all hover:bg-emerald-500 uppercase tracking-widest"
                   >
-                    🚀 REFLEXIÓN Y ENVIAR
+                    🚀 REFLEXIÓN ACTIVIDAD {quest.id}
                   </button>
                 </div>
               )}
