@@ -1,10 +1,12 @@
 
-const generateGenericList = (prefix: string) => [
-  `${prefix} ESTUDIANTE 01`, `${prefix} ESTUDIANTE 02`, `${prefix} ESTUDIANTE 03`,
-  `${prefix} ESTUDIANTE 04`, `${prefix} ESTUDIANTE 05`, `${prefix} ESTUDIANTE 06`,
-  `${prefix} ESTUDIANTE 07`, `${prefix} ESTUDIANTE 08`, `${prefix} ESTUDIANTE 09`,
-  `${prefix} ESTUDIANTE 10`
-];
+const generateGenericList = (prefix: string) => {
+  const list = [];
+  for (let i = 1; i <= 26; i++) {
+    const num = i < 10 ? `0${i}` : i;
+    list.push(`${prefix} ESTUDIANTE ${num}`);
+  }
+  return list;
+};
 
 export const studentLists: Record<string, string[]> = {
   // CLASE 3 (Originales)
@@ -19,5 +21,5 @@ export const studentLists: Record<string, string[]> = {
   // KLASSEN 6
   "K6A": generateGenericList("K6A"), "K6B": generateGenericList("K6B"),
   // KLASSEN 7
-  "K7A": generateGenericList("K7A"), "K7B": generateGenericList("K7B")
+  "K7A": generateGenericList("K7A"), "K7B": generateGenericList("K7B"), "K7C": generateGenericList("K7C"), "K7D": generateGenericList("K7D")
 };
