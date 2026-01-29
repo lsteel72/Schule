@@ -4,7 +4,12 @@ export enum Platform {
   CODESPARK = 'CodeSpark',
   MINECRAFT = 'Minecraft Edu',
   KODABLE = 'Kodable',
-  CANVAS = 'Canvas (Libreta Digital)'
+  CANVAS = 'Canvas (Libreta Digital)',
+  OZARIA = 'Ozaria',
+  CODE_COMBAT = 'Code Combat',
+  ROBLOX = 'Roblox Studio',
+  GAME_MAKER = 'Game Maker',
+  TYPING_MASTER = 'Typing Master'
 }
 
 export interface QuizQuestion {
@@ -15,6 +20,7 @@ export interface QuizQuestion {
 
 export interface WebQuest {
   id: number;
+  targetClass: number; // Clase a la que pertenece (3, 4, 5, 6, 7)
   title: string;
   description: string;
   platform: Platform;

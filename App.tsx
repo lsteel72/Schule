@@ -4,26 +4,46 @@ import { WebQuest, AdminUser, StudentResult } from './types';
 import { webQuests } from './data/webquests';
 import WebQuestCard from './components/WebQuestCard';
 import WebQuestDetail from './components/WebQuestDetail';
-import { jsPDF } from 'https://esm.sh/jspdf';
-import autoTable from 'https://esm.sh/jspdf-autotable';
 
 const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeClass, setActiveClass] = useState(3);
   const [lockedMissions, setLockedMissions] = useState<number[]>([]);
+  const [lockedLevels, setLockedLevels] = useState<number[]>([]);
   const [selectedQuest, setSelectedQuest] = useState<WebQuest | null>(null);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
-  const [selectedKlasseFilter, setSelectedKlasseFilter] = useState('Todas');
   const [showResultsPanel, setShowResultsPanel] = useState(false);
+  const [forcedLevel, setForcedLevel] = useState<number | null>(null);
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  const dashboardConfig = {
+    3: { title: "KLASSEN 3", subtitle: "TECNOLOGIA", colors: "from-blue-500 to-emerald-500", icon: "🦎" },
+    4: { title: "KLASSEN 4", subtitle: "TECNOLOGIA INICIAL", colors: "from-orange-500 to-red-600", icon: "🚀" },
+    5: { title: "KLASSEN 5", subtitle: "TECNOLOGIA AVANZADA", colors: "from-yellow-400 to-lime-500", icon: "⚔️" },
+    6: { title: "KLASSEN 6", subtitle: "TECNOLOGIA PROGRAMACION CREATIVA", colors: "from-blue-600 to-cyan-500", icon: "🎨" },
+    7: { title: "KLASSEN 7", subtitle: "TECNOLOGIA HABILIDADES DIGITALES", colors: "from-magenta-500 to-purple-600", icon: "⌨️" }
+  };
+
   useEffect(() => {
+    // Captura el nivel desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const kParam = params.get('k');
+    if (kParam && dashboardConfig.hasOwnProperty(kParam)) {
+      const lvl = parseInt(kParam);
+      setForcedLevel(lvl);
+      setActiveClass(lvl);
+    }
+
     const savedLocks = localStorage.getItem('lockedMissions');
     if (savedLocks) setLockedMissions(JSON.parse(savedLocks));
+
+    const savedLevelLocks = localStorage.getItem('lockedLevels');
+    if (savedLevelLocks) setLockedLevels(JSON.parse(savedLevelLocks));
 
     const savedUser = localStorage.getItem('adminUser');
     if (savedUser) {
@@ -35,20 +55,22 @@ const App: React.FC = () => {
 
     const savedResults = localStorage.getItem('studentResults');
     if (savedResults) setStudentResults(JSON.parse(savedResults));
-  }, [isAdmin, showResultsPanel]);
+  }, []);
 
-  const toggleLock = (id: number) => {
+  const toggleLevelLock = (level: number) => {
+    const newLevelLocks = lockedLevels.includes(level)
+      ? lockedLevels.filter(l => l !== level)
+      : [...lockedLevels, level];
+    setLockedLevels(newLevelLocks);
+    localStorage.setItem('lockedLevels', JSON.stringify(newLevelLocks));
+  };
+
+  const toggleMissionLock = (id: number) => {
     const newLocks = lockedMissions.includes(id) 
       ? lockedMissions.filter(mId => mId !== id) 
       : [...lockedMissions, id];
     setLockedMissions(newLocks);
     localStorage.setItem('lockedMissions', JSON.stringify(newLocks));
-  };
-
-  const sendEmailNotification = (user: string, pass: string) => {
-    const subject = encodeURIComponent("ACCESO ADMIN TECNOLOGIA - KLASSEN 3");
-    const body = encodeURIComponent(`Nuevas credenciales configuradas:\n\nUsuario: ${user}\nContraseña: ${pass}\n\nEste correo es para soporte administrativo.`);
-    window.location.href = `mailto:lsteel72@gmail.com?subject=${subject}&body=${body}`;
   };
 
   const handleAuth = (e: React.FormEvent) => {
@@ -59,174 +81,197 @@ const App: React.FC = () => {
       localStorage.setItem('adminUser', JSON.stringify(newUser));
       setIsAdmin(true);
       setIsAuthModalOpen(false);
-      if (confirm("✅ Registro exitoso. ¿Enviar copia a soporte (lsteel72@gmail.com)?")) {
-        sendEmailNotification(username, password);
-      }
     } else {
       if (adminUser && username === adminUser.username && btoa(password) === adminUser.passwordHash) {
         setIsAdmin(true);
         setIsAuthModalOpen(false);
       } else {
-        alert("❌ Error de acceso");
+        alert("❌ Credenciales incorrectas");
       }
     }
     setUsername('');
     setPassword('');
   };
 
-  const exportResultsToPDF = () => {
-    const doc = new jsPDF();
-    const dateStr = new Date().toLocaleDateString();
-    doc.setFontSize(18);
-    doc.text(`Resultados TECNOLOGIA K3 - ${selectedKlasseFilter}`, 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Fecha de exportación: ${dateStr}`, 14, 28);
-    
-    autoTable(doc, {
-      startY: 35,
-      head: [['Nombre', 'Klasse', 'Misión Realizada', 'EVALUACIÓN (%)', 'Reflexión (1-10)']],
-      body: filteredResults.map(r => [r.studentName, r.klasse, r.questTitle, `${r.score}%`, r.reflection]),
-      headStyles: { fillColor: [79, 70, 229] },
-      theme: 'grid'
-    });
-    doc.save(`K3_Resultados_TECNOLOGIA_${selectedKlasseFilter}_${dateStr}.pdf`);
-  };
-
-  const exportQuestsToPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(22);
-    doc.setTextColor(79, 70, 229);
-    doc.text("GUÍA PEDAGÓGICA - TECNOLOGIA K3", 14, 25);
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text("Hub de Aventuras Digitales - Klassen 3", 14, 33);
-    
-    let yPos = 45;
-    webQuests.forEach((q, index) => {
-      if (yPos > 240) {
-        doc.addPage();
-        yPos = 25;
-      }
-      doc.setFontSize(14);
-      doc.setTextColor(30);
-      doc.setFont("helvetica", "bold");
-      doc.text(`${q.title} (${q.platform})`, 14, yPos);
-      yPos += 7;
-      
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100);
-      doc.text(`KMK: ${q.kmkDefinition}`, 14, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(11);
-      doc.setTextColor(60);
-      const taskLines = doc.splitTextToSize(`Tarea: ${q.task}`, 180);
-      doc.text(taskLines, 14, yPos);
-      yPos += (taskLines.length * 5) + 5;
-      
-      doc.setFont("helvetica", "bold");
-      doc.text("PROCESO:", 14, yPos);
-      yPos += 6;
-      doc.setFont("helvetica", "normal");
-      q.process.forEach(step => {
-        const stepLines = doc.splitTextToSize(`• ${step}`, 175);
-        doc.text(stepLines, 18, yPos);
-        yPos += (stepLines.length * 5);
-      });
-      yPos += 10;
-      doc.line(14, yPos, 196, yPos);
-      yPos += 15;
-    });
-    
-    doc.save("Guia_TECNOLOGIA_K3.pdf");
-  };
-
-  const filteredResults = selectedKlasseFilter === 'Todas' 
-    ? studentResults 
-    : studentResults.filter(r => r.klasse === selectedKlasseFilter);
+  const filteredQuests = webQuests.filter(q => q.targetClass === activeClass);
+  const activeConfig = dashboardConfig[activeClass as keyof typeof dashboardConfig];
+  const isCurrentLevelLocked = lockedLevels.includes(activeClass);
 
   return (
-    <div className="min-h-screen pb-20 bg-slate-900 overflow-x-hidden">
-      <header className="py-16 px-6 flex flex-col items-center">
-        <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-black via-red-600 via-yellow-400 via-blue-600 to-red-600"></div>
-        <div className="flex flex-col md:flex-row items-center gap-10 mb-8 animate-in fade-in duration-1000">
-          <div className="w-40 h-40 bg-white rounded-[2.5rem] p-6 shadow-2xl animate-bounce-slow flex items-center justify-center border-4 border-yellow-400">
-            <span className="text-8xl">🦎</span>
+    <div className="min-h-screen pb-20 bg-slate-900 overflow-x-hidden text-white font-['Fredoka']">
+      <header className="py-12 px-6 flex flex-col items-center">
+        <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-orange-500 via-yellow-400 to-red-600 shadow-[0_5px_20px_rgba(251,191,36,0.5)]"></div>
+        
+        {/* Nav de Niveles: Se oculta para estudiantes en Modo Enfocado */}
+        {(!forcedLevel || isAdmin) && (
+          <div className="flex bg-slate-800/40 p-2 rounded-[2.5rem] mb-12 gap-3 backdrop-blur-xl border border-white/5 shadow-2xl overflow-x-auto max-w-full no-scrollbar animate-in slide-in-from-top duration-500">
+            {[3, 4, 5, 6, 7].map(num => (
+              <div key={num} className="flex items-center gap-1 group">
+                <button 
+                  onClick={() => { setActiveClass(num); setShowResultsPanel(false); }}
+                  className={`px-6 py-3 rounded-2xl font-black text-xl transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${activeClass === num ? 'bg-white text-slate-900 scale-105 shadow-[0_0_30px_rgba(255,255,255,0.2)]' : 'text-slate-500 hover:text-white'}`}
+                >
+                  KLASSEN {num}
+                  {lockedLevels.includes(num) && <span className="text-red-500 animate-pulse">🔒</span>}
+                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={() => toggleLevelLock(num)}
+                    className={`p-2 rounded-xl transition-all ${lockedLevels.includes(num) ? 'bg-red-500' : 'bg-emerald-500'} shadow-lg hover:rotate-12 active:scale-90`}
+                    title="Bloquear/Desbloquear Nivel"
+                  >
+                    {lockedLevels.includes(num) ? '🔓' : '🔒'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Badge de Modo Enfocado */}
+        {forcedLevel && !isAdmin && (
+          <div className="mb-6 bg-yellow-400/10 border border-yellow-400/30 px-6 py-2 rounded-full text-yellow-400 font-black text-xs tracking-widest uppercase animate-pulse">
+            Acceso Exclusivo • Klassen {forcedLevel}
+          </div>
+        )}
+
+        <div className="flex flex-col md:flex-row items-center gap-12 mb-8 animate-in zoom-in duration-1000">
+          <div className="w-48 h-48 bg-white rounded-[3.5rem] p-8 shadow-[0_30px_60px_rgba(0,0,0,0.5)] animate-bounce-slow flex items-center justify-center border-4 border-white/20">
+            <span className="text-[100px] drop-shadow-2xl">{activeConfig.icon}</span>
           </div>
           <div className="text-center md:text-left">
-            <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-red-500 to-blue-500 uppercase italic">KLASSEN 3</h1>
-            <p className="text-3xl font-bold text-white/90 tracking-[0.3em] pixel-font">TECNOLOGIA</p>
+            <h1 className={`text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r ${activeConfig.colors} uppercase italic leading-none drop-shadow-2xl`}>
+              {activeConfig.title}
+            </h1>
+            <p className="text-2xl md:text-3xl font-bold text-white/50 tracking-[0.3em] pixel-font mt-4 uppercase">
+              {activeConfig.subtitle}
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-6 mt-10 justify-center">
-          <button onClick={() => isAdmin ? setIsAdmin(false) : setIsAuthModalOpen(true)} className="px-10 py-5 bg-slate-800 text-white rounded-2xl font-black text-xl shadow-lg active:translate-y-1 transition-all hover:bg-slate-700">
-            {isAdmin ? '🔒 SALIR' : '👤 ADMIN'}
+        <div className="flex flex-wrap gap-6 mt-12 justify-center">
+          <button onClick={() => isAdmin ? setIsAdmin(false) : setIsAuthModalOpen(true)} className={`px-10 py-5 rounded-[2rem] font-black text-xl shadow-2xl transition-all active:translate-y-1 ${isAdmin ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-slate-800 text-white border border-white/5 hover:bg-slate-700'}`}>
+            {isAdmin ? '🔒 SALIR MODO ADMIN' : '👤 ACCESO DOCENTE'}
           </button>
-          {isAdmin && <button onClick={() => setShowResultsPanel(!showResultsPanel)} className="px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg hover:bg-indigo-700 transition-all">
-            {showResultsPanel ? '🏠 INICIO' : '📊 DATOS'}
-          </button>}
+          
+          {isAdmin && (
+            <div className="flex flex-wrap gap-4 items-center animate-in fade-in slide-in-from-right duration-500">
+              <button onClick={() => setShowResultsPanel(!showResultsPanel)} className="px-10 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-xl shadow-2xl hover:bg-indigo-500 border border-white/10">
+                {showResultsPanel ? '🏠 VER CLASE' : '📊 VER REPORTES'}
+              </button>
+              
+              <div className="bg-slate-800/80 backdrop-blur-md p-3 rounded-[2rem] flex gap-2 border border-white/10 shadow-2xl">
+                 <span className="text-[10px] font-black uppercase self-center px-4 opacity-40 leading-tight">Copiar Link<br/>Enfocado:</span>
+                 {[3,4,5,6,7].map(l => (
+                   <button 
+                    key={l}
+                    onClick={() => {
+                      const url = `${window.location.origin}${window.location.pathname}?k=${l}`;
+                      navigator.clipboard.writeText(url);
+                      alert(`¡Enlace para KLASSEN ${l} copiado!`);
+                    }}
+                    className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-white/20 font-black text-xl transition-all hover:scale-110 active:scale-90"
+                    title={`Copiar URL para Klassen ${l}`}
+                   >
+                     {l}
+                   </button>
+                 ))}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6">
         {showResultsPanel ? (
-          <div className="bg-white rounded-[3rem] p-12 text-slate-800 shadow-2xl border-8 border-indigo-100 overflow-hidden animate-in zoom-in duration-300">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-               <h2 className="text-4xl font-black uppercase italic">Base de Datos <span className="text-indigo-600">K3</span></h2>
-               <div className="flex flex-wrap gap-4 justify-center">
-                 <button onClick={exportQuestsToPDF} className="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-black transition-colors">📜 GUÍA PDF</button>
-                 <select onChange={(e) => setSelectedKlasseFilter(e.target.value)} className="px-4 py-2 rounded-xl bg-slate-100 font-bold outline-none border-2 border-slate-200">
-                   {['Todas', 'K3A', 'K3B', 'K3C', 'K3D'].map(k => <option key={k} value={k}>{k}</option>)}
-                 </select>
-                 <button onClick={exportResultsToPDF} className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-emerald-700 transition-colors">📥 RESULTADOS PDF</button>
+          <div className="bg-white rounded-[4rem] p-12 text-slate-800 shadow-[0_50px_100px_rgba(0,0,0,0.3)] border-8 border-indigo-50 overflow-hidden animate-in zoom-in-95 duration-500">
+             <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+               <h2 className="text-4xl font-black uppercase italic tracking-tighter">Panel de <span className="text-indigo-600">Resultados</span></h2>
+               <div className="flex gap-4">
+                 <div className="bg-slate-50 px-6 py-3 rounded-2xl font-black text-indigo-600 border border-slate-100">
+                    MISIONES TOTALES: {studentResults.length}
+                 </div>
                </div>
-            </div>
-            <div className="overflow-x-auto rounded-2xl border-4 border-slate-50">
-               <table className="w-full text-left">
-                 <thead className="bg-slate-900 text-white">
+             </div>
+             <div className="overflow-x-auto rounded-[2.5rem] border-4 border-slate-50 shadow-inner">
+               <table className="w-full text-left border-collapse">
+                 <thead className="bg-slate-900 text-white font-black uppercase text-xs tracking-[0.2em]">
                    <tr>
-                     <th className="p-4">Estudiante</th>
-                     <th className="p-4">Klasse</th>
-                     <th className="p-4">Misión</th>
-                     <th className="p-4 text-center">EVALUACIÓN</th>
-                     <th className="p-4 text-center">Refl.</th>
+                     <th className="p-8">Estudiante</th>
+                     <th className="p-8">Grupo</th>
+                     <th className="p-8">Misión Realizada</th>
+                     <th className="p-8 text-center">EVAL.</th>
+                     <th className="p-8 text-center">Refl.</th>
                    </tr>
                  </thead>
-                 <tbody className="divide-y-2">
-                   {filteredResults.length > 0 ? filteredResults.map(r => (
-                     <tr key={r.id} className="hover:bg-slate-50">
-                       <td className="p-4 font-black">{r.studentName}</td>
-                       <td className="p-4"><span className="bg-indigo-100 px-3 py-1 rounded-lg font-bold">{r.klasse}</span></td>
-                       <td className="p-4 text-slate-400 italic">{r.questTitle}</td>
-                       <td className="p-4 text-center font-black text-emerald-600">{r.score}%</td>
-                       <td className="p-4 text-center"><span className="w-10 h-10 bg-yellow-400 inline-flex items-center justify-center rounded-lg font-black">{r.reflection}</span></td>
+                 <tbody className="divide-y-2 divide-slate-50 font-medium">
+                   {studentResults.length > 0 ? [...studentResults].reverse().map(r => (
+                     <tr key={r.id} className="hover:bg-indigo-50/30 transition-colors group">
+                       <td className="p-8 font-black text-slate-900 group-hover:text-indigo-600">{r.studentName}</td>
+                       <td className="p-8 font-bold text-slate-400">{r.klasse}</td>
+                       <td className="p-8 italic text-slate-500">{r.questTitle}</td>
+                       <td className="p-8 text-center">
+                         <span className={`px-4 py-2 rounded-xl font-black text-xl ${r.score >= 70 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                           {r.score}%
+                         </span>
+                       </td>
+                       <td className="p-8 text-center">
+                         <span className="w-12 h-12 bg-yellow-400 inline-flex items-center justify-center rounded-2xl font-black text-slate-900 shadow-lg border-2 border-white">
+                           {r.reflection}
+                         </span>
+                       </td>
                      </tr>
                    )) : (
-                     <tr><td colSpan={5} className="p-10 text-center text-slate-300 font-bold italic">No hay resultados registrados aún.</td></tr>
+                     <tr><td colSpan={5} className="p-24 text-center text-slate-300 font-bold italic text-3xl">Sin registros en la base de datos.</td></tr>
                    )}
                  </tbody>
                </table>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-            {webQuests.map(quest => <WebQuestCard key={quest.id} quest={quest} isLocked={lockedMissions.includes(quest.id)} isAdmin={isAdmin} onToggleLock={toggleLock} onClick={setSelectedQuest} />)}
+          <div className="relative">
+            {isCurrentLevelLocked && !isAdmin && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-xl rounded-[4rem] p-10 text-center border-4 border-dashed border-red-500/30 min-h-[600px] animate-in fade-in duration-500">
+                <div className="text-[120px] mb-8 animate-pulse">🔒</div>
+                <h2 className="text-6xl font-black text-white uppercase italic mb-6 leading-none">ACCESO RESTRINGIDO</h2>
+                <p className="text-2xl text-slate-400 font-bold max-w-xl mx-auto leading-relaxed">
+                  Esta sección de <span className="text-white italic">KLASSEN {activeClass}</span> ha sido bloqueada por el docente. 
+                  <br/>Espera a recibir nuevas instrucciones.
+                </p>
+              </div>
+            )}
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 transition-all duration-700 ${isCurrentLevelLocked && !isAdmin ? 'blur-md grayscale scale-95 opacity-50' : ''}`}>
+              {filteredQuests.map(quest => (
+                <WebQuestCard 
+                  key={quest.id} 
+                  quest={quest} 
+                  isLocked={lockedMissions.includes(quest.id)} 
+                  isAdmin={isAdmin} 
+                  onToggleLock={toggleMissionLock} 
+                  onClick={setSelectedQuest} 
+                />
+              ))}
+            </div>
           </div>
         )}
       </main>
 
       {isAuthModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 p-6 backdrop-blur-xl animate-in fade-in duration-300">
-           <div className="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl relative">
-             <div className="absolute top-0 left-0 w-full h-3 bg-indigo-600"></div>
-             <h2 className="text-3xl font-black text-center mb-8 uppercase italic">{authMode === 'register' ? 'Registro Admin' : 'Acceso Admin'}</h2>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 p-6 backdrop-blur-2xl animate-in fade-in duration-300">
+           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative border-t-[12px] border-indigo-600 overflow-hidden">
+             <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-12 -mt-12"></div>
+             <h2 className="text-4xl font-black text-center mb-10 uppercase italic text-slate-900">ADMIN LOGIN</h2>
              <form onSubmit={handleAuth} className="space-y-6">
-               <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-4 bg-slate-50 rounded-2xl border-2 outline-none text-slate-900 font-bold" placeholder="Usuario" required />
-               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-4 bg-slate-50 rounded-2xl border-2 outline-none text-slate-900 font-bold" placeholder="Contraseña" required />
-               <button type="submit" className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-95">{authMode === 'register' ? 'CREAR ADMIN' : 'ENTRAR'}</button>
-               <button type="button" onClick={() => setIsAuthModalOpen(false)} className="w-full text-slate-400 font-bold uppercase text-xs hover:text-slate-600">Cancelar</button>
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Usuario del Sistema</label>
+                 <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-6 bg-slate-100 rounded-[2rem] border-2 border-transparent focus:border-indigo-500 outline-none text-slate-900 font-bold text-lg transition-all" placeholder="Admin User" required />
+               </div>
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Contraseña Maestra</label>
+                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-6 bg-slate-100 rounded-[2rem] border-2 border-transparent focus:border-indigo-500 outline-none text-slate-900 font-bold text-lg transition-all" placeholder="••••••••" required />
+               </div>
+               <button type="submit" className="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-2xl hover:bg-indigo-700 shadow-xl active:scale-95 transition-all uppercase italic tracking-widest">ENTRAR AL SISTEMA</button>
+               <button type="button" onClick={() => setIsAuthModalOpen(false)} className="w-full text-slate-400 font-black uppercase text-xs tracking-widest mt-6 hover:text-slate-600 transition-colors">Volver a la clase</button>
              </form>
            </div>
         </div>
